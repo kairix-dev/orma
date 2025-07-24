@@ -21,10 +21,10 @@ authors = [
 ]
 
 dependencies = [
-    "pydantic>=2.11.7,<2.12",
-    "fastapi>=0.116.1,<0.117",
-    "sqlalchemy[postgresql-psycopg]>=2.0.41,<2.1",
-    "celery[redis]>=5.5.3,<5.6",
+    "pydantic>=2.11,<2.12",
+    "fastapi>=0.116,<0.117",
+    "sqlalchemy[postgresql-psycopg]>=2.0,<2.1",
+    "celery[redis]>=5.5,<5.6",
 ]
 
 [project.urls]
@@ -39,22 +39,22 @@ orma = "orma.__main__:main"
 
 [project.optional-dependencies]
 cli = [
-    "click~=8",
+    "click==8.*",
 ]
 dev = [
-    "pre-commit~=4",
-    "memray~=1",
+    "pre-commit==4.*",
+    "memray==1.*",
 ]
 
 ci = [
-    "radon~=6",
-    "black~=25",
-    "pyright~=1",
-    "mypy~=1",
-    "isort~=6",
-    "autoflake~=2",
-    "pytest~=8",
-    "pytest-cov~=6",
+    "radon==6.*",
+    "black==25.*",
+    "pyright==1.*",
+    "mypy==1.*",
+    "isort==6.*",
+    "autoflake==2.*",
+    "pytest==8.*",
+    "pytest-cov==6.*",
 ]
 
 
