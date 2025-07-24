@@ -50,7 +50,7 @@ jobs:
           VERSION_FILE="orma/__init__.py"
           OLD_VERSION=$(grep -oP "__version__\s*=\s*['\"]\K[0-9a-zA-Z.]+" "$VERSION_FILE")
           YEAR=$(date +'%y' | sed 's/^0*//')
-          MONTH=$(date +'%mm' | sed 's/^0*//')
+          MONTH=$(date +'%m')
           DATE="$YEAR$MONTH"
           PATCH=0
           if [[ $OLD_VERSION == $DATE* ]]; then
