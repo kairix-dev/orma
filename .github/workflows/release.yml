@@ -47,17 +47,12 @@ jobs:
       - name: Calculate new version and update __init__.py
         id: versioning
         run: |
+          # Calculate new version using Python script
+          NEW_VERSION=$(python scripts/next_version_number.py)
+          echo "Calculated new version: $NEW_VERSION"
+          
+          # Update __init__.py with the new version
           VERSION_FILE="orma/__init__.py"
-          OLD_VERSION=$(grep -oP "__version__\s*=\s*['\"]\K[0-9]+\.[0-9]{3,4}\.[0-9]+" "$VERSION_FILE")
-          YEAR=$(date +'%y' | sed 's/^0*//')
-          MONTH=$(date +'%m')
-          DATE="$YEAR$MONTH"
-          PATCH=0
-          if [[ $OLD_VERSION == $DATE* ]]; then
-            PATCH=$((${OLD_VERSION##*.}+1))
-          fi
-          MAJOR_VERSION="0"
-          NEW_VERSION="$MAJOR_VERSION.$DATE.$PATCH"
           sed -i "s/__version__\s*=.*/__version__ = \"$NEW_VERSION\"/" "$VERSION_FILE"
           echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
 
@@ -65,11 +60,17 @@ jobs:
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
-          git config --local user.email "devteam@kairix.dev"
-          git config --local user.name "GitHub App"
-          git add orma/__init__.py
-          git commit -m "🔖 Auto-bump version to v${{ steps.versioning.outputs.new_version }} [skip ci]"
-          git push https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git main
+          # Check if there are changes in the version file
+          if git diff --quiet orma/__init__.py; then
+            echo "No version changes detected, skipping commit."
+          else
+            echo "Version changes detected, committing and pushing..."
+            git config --local user.email "devteam@kairix.dev"
+            git config --local user.name "GitHub App"
+            git add orma/__init__.py
+            git commit -m "🔖 Auto-bump version to v${{ steps.versioning.outputs.new_version }} [skip ci]"
+            git push https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git main
+          fi
 
       - name: Create Git Tag
         env:
