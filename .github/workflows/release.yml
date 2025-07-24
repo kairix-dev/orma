@@ -4,7 +4,7 @@ on:
   push:
     branches: [ main ]
     paths:
-      - 'kairix_devtools/**'
+      - 'orma/**'
       - 'pyproject.toml'
 
 jobs:
@@ -67,7 +67,7 @@ jobs:
         run: |
           git config --local user.email "devteam@kairix.dev"
           git config --local user.name "GitHub App"
-          git add kairix_devtools/__init__.py
+          git add orma/__init__.py
           git commit -m "🔖 Auto-bump version to v${{ steps.versioning.outputs.new_version }} [skip ci]"
           git push https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git main
 

@@ -1,1 +1,1 @@
-"""Test package for kairix_devtools."""
+"""Test package for orma."""
