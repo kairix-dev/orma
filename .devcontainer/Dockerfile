@@ -18,8 +18,6 @@ RUN npm install -g cloc
 RUN pip install --upgrade pip
 
 RUN pip install pre-commit
-RUN pip install 
-RUN pip install radon
 
 USER vscode
 ENV PATH="$PATH:/home/vscode/.local/bin"
