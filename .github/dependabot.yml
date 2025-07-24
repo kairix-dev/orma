@@ -1,0 +1,13 @@
+version: 2
+updates:
+  - package-ecosystem: "devcontainers"
+    directory: "/"
+    schedule:
+      interval: weekly
+    target-branch: "dependabot/devcontainers"
+    
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: weekly
+    target-branch: "dependabot/pip"

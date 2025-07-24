@@ -1,0 +1,93 @@
+name: Release
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'kairix_devtools/**'
+      - 'pyproject.toml'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - name: Generate GitHub App token
+        id: app-token
+        uses: tibdex/github-app-token@v2
+        with:
+          app_id: ${{ secrets.GH_APP_ID }}
+          private_key: ${{ secrets.GH_APP_PRIVATE_KEY }}
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          token: ${{ steps.app-token.outputs.token }}
+
+      - name: Check for [skip ci]
+        run: |
+          if git log -1 --pretty=%B | grep -q '\[skip ci\]'; then
+            echo "[skip ci] found, skipping release."
+            exit 0
+          fi
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12.x'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[ci]"
+          pip install build
+
+      - name: Calculate new version and update __init__.py
+        id: versioning
+        run: |
+          VERSION_FILE="orma/__init__.py"
+          OLD_VERSION=$(grep -oP "__version__\s*=\s*['\"]\K[0-9a-zA-Z.]+" "$VERSION_FILE")
+          YEAR=$(date +'%y' | sed 's/^0*//')
+          MONTH=$(date +'%mm' | sed 's/^0*//')
+          DATE="$YEAR$MONTH"
+          PATCH=0
+          if [[ $OLD_VERSION == $DATE* ]]; then
+            PATCH=$((${OLD_VERSION##*.}+1))
+          fi
+          MAJOR_VERSION="0"
+          NEW_VERSION="$MAJOR_VERSION.$DATE.$PATCH"
+          sed -i "s/__version__\s*=.*/__version__ = \"$NEW_VERSION\"/" "$VERSION_FILE"
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Commit and push version bump
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          git config --local user.email "devteam@kairix.dev"
+          git config --local user.name "GitHub App"
+          git add kairix_devtools/__init__.py
+          git commit -m "🔖 Auto-bump version to v${{ steps.versioning.outputs.new_version }} [skip ci]"
+          git push https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git main
+
+      - name: Create Git Tag
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          git tag v${{ steps.versioning.outputs.new_version }}
+          git push https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git v${{ steps.versioning.outputs.new_version }}
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.versioning.outputs.new_version }}
+          name: v${{ steps.versioning.outputs.new_version }}
+          generate_release_notes: true
+
+      - name: Build package
+        run: |
+          python -m build
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
